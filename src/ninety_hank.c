@@ -167,8 +167,23 @@ void update_display(PblTm *current_time) {
      
 //Moon_phase
  
-  set_container_image(&moon_digits_images[0], MOON_IMAGE_RESOURCE_IDS[moon_phase(current_time->tm_year+1900,current_time->tm_mon,current_time->tm_mday)], GPoint(1, 1));
+  int moonphase_number;
+  moonphase_number = moon_phase(current_time->tm_year+1900,current_time->tm_mon,current_time->tm_mday);
+  set_container_image(&moon_digits_images[0], MOON_IMAGE_RESOURCE_IDS[moonphase_number], GPoint(1, 1));
 
+  char * moonphase_text;
+  moonphase_text = "--";
+  if (moonphase_number == 0) moonphase_text = "NM"; 
+  if (moonphase_number == 1) moonphase_text = "NM+"; 
+  if (moonphase_number == 2) moonphase_text = "NM++"; 
+  if (moonphase_number == 3) moonphase_text = "VM-"; 
+  if (moonphase_number == 4) moonphase_text = "VM"; 
+  if (moonphase_number == 5) moonphase_text = "VM+"; 
+  if (moonphase_number == 6) moonphase_text = "VM++"; 
+  if (moonphase_number == 7) moonphase_text = "NM-"; 
+  text_layer_set_text(&moonLayer, moonphase_text);
+  
+  
 }
 
 
@@ -201,11 +216,11 @@ void handle_init(AppContextRef ctx) {
     layer_add_child(&window.layer, &time_format_image.layer.layer);
   }
 
-  text_layer_init(&moonLayer, GRect(10, 5, 150 /* width */, 150 /* height */));
+  text_layer_init(&moonLayer, GRect(2, 25, 60 /* width */, 30 /* height */));
   layer_add_child(&background_image.layer.layer, &moonLayer.layer);
   text_layer_set_text_color(&moonLayer, GColorWhite);
   text_layer_set_background_color(&moonLayer, GColorClear);
-  text_layer_set_font(&moonLayer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  text_layer_set_font(&moonLayer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   
   // Avoids a blank screen on watch start.
   PblTm tick_time;
