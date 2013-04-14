@@ -7,7 +7,7 @@
 #define MY_UUID {0xE5, 0x2B, 0xC3, 0x7B, 0x66, 0x13, 0x49, 0x70, 0x80, 0x11, 0xD6, 0xBC, 0x51, 0x97, 0xC5, 0x11}
 PBL_APP_INFO(MY_UUID,
 	     "90 Hank", "Hank",
-	     0, 3, /* App major/minor version */
+	     0, 4, /* App major/minor version */
 	     RESOURCE_ID_IMAGE_MENU_ICON,
 	     APP_INFO_WATCH_FACE);
 
@@ -135,7 +135,7 @@ int moon_phase(int y, int m, int d)
 void update_display(PblTm *current_time) {
   
   // Day of week
-  set_container_image(&day_name_image, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(38, 61));
+  set_container_image(&day_name_image, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(30, 61));
 
   // Day
   set_container_image(&date_digits_images[0], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday/10], GPoint(75, 61));
@@ -188,7 +188,7 @@ void update_display(PblTm *current_time) {
   
 // -------------------- Calendar week  
   static char cw_text[] = "XX00";
-  string_format_time(cw_text, sizeof(cw_text), "KW%V", current_time);
+  string_format_time(cw_text, sizeof(cw_text), "KW%z", current_time);
   text_layer_set_text(&cwLayer, cw_text); 
 // -------------------- Calendar week  
   
@@ -218,7 +218,7 @@ void handle_init(AppContextRef ctx) {
   if (clock_is_24h_style()) {
     bmp_init_container(RESOURCE_ID_IMAGE_24_HOUR_MODE, &time_format_image);
 
-    time_format_image.layer.layer.frame.origin.x = 10;
+    time_format_image.layer.layer.frame.origin.x = 2;
     time_format_image.layer.layer.frame.origin.y = 68;
 
     layer_add_child(&window.layer, &time_format_image.layer.layer);
@@ -231,7 +231,7 @@ void handle_init(AppContextRef ctx) {
   text_layer_set_font(&moonLayer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 
 
-  text_layer_init(&cwLayer, GRect(2, 40, 50 /* width */, 30 /* height */));
+  text_layer_init(&cwLayer, GRect(2, 40, 80 /* width */, 30 /* height */));
   layer_add_child(&background_image.layer.layer, &cwLayer.layer);
   text_layer_set_text_color(&cwLayer, GColorWhite);
   text_layer_set_background_color(&cwLayer, GColorClear);
