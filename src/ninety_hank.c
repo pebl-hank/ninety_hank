@@ -188,7 +188,7 @@ void update_display(PblTm *current_time) {
   
 // -------------------- Calendar week  
   static char cw_text[] = "XX00";
-  string_format_time(cw_text, sizeof(cw_text), "KW%z", current_time);
+  string_format_time(cw_text, sizeof(cw_text), "KW%V", current_time);
   text_layer_set_text(&cwLayer, cw_text); 
 // -------------------- Calendar week  
   
