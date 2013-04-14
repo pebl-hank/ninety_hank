@@ -7,7 +7,7 @@
 #define MY_UUID {0xE5, 0x2B, 0xC3, 0x7B, 0x66, 0x13, 0x49, 0x70, 0x80, 0x11, 0xD6, 0xBC, 0x51, 0x97, 0xC5, 0x11}
 PBL_APP_INFO(MY_UUID,
 	     "90 Hank", "Hank",
-	     0, 2, /* App major/minor version */
+	     0, 3, /* App major/minor version */
 	     RESOURCE_ID_IMAGE_MENU_ICON,
 	     APP_INFO_WATCH_FACE);
 
