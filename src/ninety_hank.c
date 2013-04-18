@@ -4,6 +4,10 @@
 #include "stdlib.h"
 #include "string.h"
 
+#include "config.h"
+#include "my_math.h"
+#include "suncalc.h"
+
 #define MY_UUID {0xE5, 0x2B, 0xC3, 0x7B, 0x66, 0x13, 0x49, 0x70, 0x80, 0x11, 0xD6, 0xBC, 0x51, 0x97, 0xC5, 0x11}
 PBL_APP_INFO(MY_UUID,
 	     "90 Hank", "Hank",
@@ -16,6 +20,11 @@ Window window;
 TextLayer moonLayer; // The moonphase
 
 TextLayer cwLayer; // The calendar week
+
+TextLayer text_sunrise_layer;
+TextLayer text_sunset_layer;
+
+TextLayer text_addTimeZone1_layer;
 
 BmpContainer background_image;
 
@@ -60,7 +69,7 @@ const int MOON_IMAGE_RESOURCE_IDS[] = {
   RESOURCE_ID_IMAGE_MOON_7
 };
 
-#define TOTAL_DATE_DIGITS 4
+#define TOTAL_DATE_DIGITS 8
 BmpContainer date_digits_images[TOTAL_DATE_DIGITS];
 
 const int BIG_DIGIT_IMAGE_RESOURCE_IDS[] = {
@@ -132,66 +141,134 @@ int moon_phase(int y, int m, int d)
     return b;
 }
 
+void adjustTimezone(float* time) 
+{
+  *time += TIMEZONE;
+  if (*time > 24) *time -= 24;
+  if (*time < 0) *time += 24;
+}
+
+void updateSunsetSunrise()
+{
+	// Calculating Sunrise/sunset with courtesy of Michael Ehrmann
+	// https://github.com/mehrmann/pebble-sunclock
+	static char sunrise_text[] = "00:00";
+	static char sunset_text[]  = "00:00";
+	
+	PblTm pblTime;
+	get_time(&pblTime);
+
+	char *time_format;
+
+	if (clock_is_24h_style()) 
+	{
+	  time_format = "%R";
+	} 
+	else 
+	{
+	  time_format = "%I:%M";
+	}
+
+	float sunriseTime = calcSunRise(pblTime.tm_year, pblTime.tm_mon+1, pblTime.tm_mday, LATITUDE, LONGITUDE, 91.0f);
+	float sunsetTime = calcSunSet(pblTime.tm_year, pblTime.tm_mon+1, pblTime.tm_mday, LATITUDE, LONGITUDE, 91.0f);
+	adjustTimezone(&sunriseTime);
+	adjustTimezone(&sunsetTime);
+
+	if (!pblTime.tm_isdst) 
+	{
+	  sunriseTime+=1;
+	  sunsetTime+=1;
+	} 
+
+	pblTime.tm_min = (int)(60*(sunriseTime-((int)(sunriseTime))));
+	pblTime.tm_hour = (int)sunriseTime;
+	string_format_time(sunrise_text, sizeof(sunrise_text), time_format, &pblTime);
+	text_layer_set_text(&text_sunrise_layer, sunrise_text);
+
+	pblTime.tm_min = (int)(60*(sunsetTime-((int)(sunsetTime))));
+	pblTime.tm_hour = (int)sunsetTime;
+	string_format_time(sunset_text, sizeof(sunset_text), time_format, &pblTime);
+	text_layer_set_text(&text_sunset_layer, sunset_text);
+}
+
+unsigned short the_last_hour = 0;
+
 void update_display(PblTm *current_time) {
   
-  // Day of week
-  set_container_image(&day_name_image, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(30, 61));
-
-  // Day
-  set_container_image(&date_digits_images[0], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday/10], GPoint(75, 61));
-  set_container_image(&date_digits_images[1], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday%10], GPoint(88, 61));
- 
-  // Month
-  set_container_image(&date_digits_images[2], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)/10], GPoint(108, 61));
-  set_container_image(&date_digits_images[3], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)%10], GPoint(121, 61));
-
   unsigned short display_hour = get_display_hour(current_time->tm_hour);
+  
+  //Hour
+  set_container_image(&time_digits_images[0], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour/10], GPoint(4, 94));
+  set_container_image(&time_digits_images[1], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour%10], GPoint(37, 94));
+  //Minute
+  set_container_image(&time_digits_images[2], BIG_DIGIT_IMAGE_RESOURCE_IDS[current_time->tm_min/10], GPoint(80, 94));
+  set_container_image(&time_digits_images[3], BIG_DIGIT_IMAGE_RESOURCE_IDS[current_time->tm_min%10], GPoint(111, 94));
+  
+  // ======== Time Zone 1  
+  text_layer_set_text(&text_addTimeZone1_layer, AdditionalTimezone_1_Description); 
+  short  display_hour_tz1 = display_hour AdditionalTimezone_1;
+  if (display_hour_tz1 > 24) display_hour_tz1 -= 24;
+  if (display_hour_tz1 < 0) display_hour_tz1 += 24;
+  set_container_image(&date_digits_images[4], DATENUM_IMAGE_RESOURCE_IDS[display_hour_tz1/10], GPoint(75, 5));
+  set_container_image(&date_digits_images[5], DATENUM_IMAGE_RESOURCE_IDS[display_hour_tz1%10], GPoint(88, 5));  
+  set_container_image(&date_digits_images[6], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_min/10], GPoint(108, 5));
+  set_container_image(&date_digits_images[7], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_min%10], GPoint(121, 5));  
+  // ======== Time Zone 1  
+  
+  
+  if (the_last_hour != display_hour){
+	  // Day of week
+	  set_container_image(&day_name_image, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(30, 71));
 
-  set_container_image(&time_digits_images[0], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour/10], GPoint(4, 84));
-  set_container_image(&time_digits_images[1], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour%10], GPoint(37, 84));
+	  // Day
+	  set_container_image(&date_digits_images[0], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday/10], GPoint(75, 71));
+	  set_container_image(&date_digits_images[1], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday%10], GPoint(88, 71));
+	 
+	  // Month
+	  set_container_image(&date_digits_images[2], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)/10], GPoint(108, 71));
+	  set_container_image(&date_digits_images[3], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)%10], GPoint(121, 71));
 
-  set_container_image(&time_digits_images[2], BIG_DIGIT_IMAGE_RESOURCE_IDS[current_time->tm_min/10], GPoint(80, 84));
-  set_container_image(&time_digits_images[3], BIG_DIGIT_IMAGE_RESOURCE_IDS[current_time->tm_min%10], GPoint(111, 84));
+	  if (!clock_is_24h_style()) {
+		if (current_time->tm_hour >= 12) {
+		  set_container_image(&time_format_image, RESOURCE_ID_IMAGE_PM_MODE, GPoint(10, 78));
+		} else {
+		  layer_remove_from_parent(&time_format_image.layer.layer);
+		  bmp_deinit_container(&time_format_image);
+		}
 
-  if (!clock_is_24h_style()) {
-    if (current_time->tm_hour >= 12) {
-      set_container_image(&time_format_image, RESOURCE_ID_IMAGE_PM_MODE, GPoint(10, 68));
-    } else {
-      layer_remove_from_parent(&time_format_image.layer.layer);
-      bmp_deinit_container(&time_format_image);
-    }
+		if (display_hour/10 == 0) {
+		  layer_remove_from_parent(&time_digits_images[0].layer.layer);
+		  bmp_deinit_container(&time_digits_images[0]);
+		}
+	  }
+		 
+	// -------------------- Moon_phase
+	  int moonphase_number;
+	  moonphase_number = moon_phase(current_time->tm_year+1900,current_time->tm_mon,current_time->tm_mday);
 
-    if (display_hour/10 == 0) {
-      layer_remove_from_parent(&time_digits_images[0].layer.layer);
-      bmp_deinit_container(&time_digits_images[0]);
-    }
+	  set_container_image(&moon_digits_images[0], MOON_IMAGE_RESOURCE_IDS[moonphase_number], GPoint(1, 1));  // ---------- Moon phase Image
+
+	  char * moonphase_text = "--";
+	  if (moonphase_number == 0) moonphase_text = "NM"; 
+	  if (moonphase_number == 1) moonphase_text = "NM+"; 
+	  if (moonphase_number == 2) moonphase_text = "NM++"; 
+	  if (moonphase_number == 3) moonphase_text = "VM-"; 
+	  if (moonphase_number == 4) moonphase_text = "VM"; 
+	  if (moonphase_number == 5) moonphase_text = "VM+"; 
+	  if (moonphase_number == 6) moonphase_text = "VM++"; 
+	  if (moonphase_number == 7) moonphase_text = "NM-"; 
+
+	  text_layer_set_text(&moonLayer, moonphase_text);
+	// -------------------- Moon_phase
+	  
+	// -------------------- Calendar week  
+	  static char cw_text[] = "XX00";
+	  string_format_time(cw_text, sizeof(cw_text), "KW%V", current_time);
+	  text_layer_set_text(&cwLayer, cw_text); 
+	// ------------------- Calendar week  
+	the_last_hour = display_hour;
+	updateSunsetSunrise();
   }
-     
-// -------------------- Moon_phase
-  int moonphase_number;
-  moonphase_number = moon_phase(current_time->tm_year+1900,current_time->tm_mon,current_time->tm_mday);
-
-  set_container_image(&moon_digits_images[0], MOON_IMAGE_RESOURCE_IDS[moonphase_number], GPoint(1, 1));  // ---------- Moon phase Image
-
-  char * moonphase_text = "--";
-  if (moonphase_number == 0) moonphase_text = "NM"; 
-  if (moonphase_number == 1) moonphase_text = "NM+"; 
-  if (moonphase_number == 2) moonphase_text = "NM++"; 
-  if (moonphase_number == 3) moonphase_text = "VM-"; 
-  if (moonphase_number == 4) moonphase_text = "VM"; 
-  if (moonphase_number == 5) moonphase_text = "VM+"; 
-  if (moonphase_number == 6) moonphase_text = "VM++"; 
-  if (moonphase_number == 7) moonphase_text = "NM-"; 
-
-  text_layer_set_text(&moonLayer, moonphase_text);
-// -------------------- Moon_phase
-  
-// -------------------- Calendar week  
-  static char cw_text[] = "XX00";
-  string_format_time(cw_text, sizeof(cw_text), "KW%V", current_time);
-  text_layer_set_text(&cwLayer, cw_text); 
-// -------------------- Calendar week  
-  
 }
 
 
@@ -219,25 +296,49 @@ void handle_init(AppContextRef ctx) {
     bmp_init_container(RESOURCE_ID_IMAGE_24_HOUR_MODE, &time_format_image);
 
     time_format_image.layer.layer.frame.origin.x = 2;
-    time_format_image.layer.layer.frame.origin.y = 68;
+    time_format_image.layer.layer.frame.origin.y = 78;
 
     layer_add_child(&window.layer, &time_format_image.layer.layer);
   }
 
+  // Moon Text
   text_layer_init(&moonLayer, GRect(2, 25, 50 /* width */, 30 /* height */));
   layer_add_child(&background_image.layer.layer, &moonLayer.layer);
   text_layer_set_text_color(&moonLayer, GColorWhite);
   text_layer_set_background_color(&moonLayer, GColorClear);
   text_layer_set_font(&moonLayer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 
-
+  // Calendar Week Text
   text_layer_init(&cwLayer, GRect(2, 40, 80 /* width */, 30 /* height */));
   layer_add_child(&background_image.layer.layer, &cwLayer.layer);
   text_layer_set_text_color(&cwLayer, GColorWhite);
   text_layer_set_background_color(&cwLayer, GColorClear);
   text_layer_set_font(&cwLayer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 
+  // Sunrise Text
+  text_layer_init(&text_sunrise_layer, window.layer.frame);
+  text_layer_set_text_color(&text_sunrise_layer, GColorWhite);
+  text_layer_set_background_color(&text_sunrise_layer, GColorClear);
+  layer_set_frame(&text_sunrise_layer.layer, GRect(7, 152, 100, 30));
+  text_layer_set_font(&text_sunrise_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  layer_add_child(&window.layer, &text_sunrise_layer.layer);
+
+  // Sunset Text
+  text_layer_init(&text_sunset_layer, window.layer.frame);
+  text_layer_set_text_color(&text_sunset_layer, GColorWhite);
+  text_layer_set_background_color(&text_sunset_layer, GColorClear);
+  layer_set_frame(&text_sunset_layer.layer, GRect(110, 152, 100, 30));
+  text_layer_set_font(&text_sunset_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  layer_add_child(&window.layer, &text_sunset_layer.layer); 
   
+  // Text for Additional Time Zone 1
+  text_layer_init(&text_addTimeZone1_layer, window.layer.frame);
+  text_layer_set_text_color(&text_addTimeZone1_layer, GColorWhite);
+  text_layer_set_background_color(&text_addTimeZone1_layer, GColorClear);
+  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(55, 5, 100, 30));
+  text_layer_set_font(&text_addTimeZone1_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  layer_add_child(&window.layer, &text_addTimeZone1_layer.layer);  
+   
   // Avoids a blank screen on watch start.
   PblTm tick_time;
 
