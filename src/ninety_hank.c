@@ -191,7 +191,7 @@ void updateSunsetSunrise()
 	text_layer_set_text(&text_sunset_layer, sunset_text);
 }
 
-unsigned short the_last_hour = 0;
+unsigned short the_last_hour = 25;
 
 void update_display(PblTm *current_time) {
   
