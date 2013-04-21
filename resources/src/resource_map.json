@@ -16,12 +16,6 @@
 
 	{
         "type": "png",
-        "defName": "IMAGE_METER_BAR",
-        "file": "images/icon_meter.png"
-        },
-
-	{
-        "type": "png",
         "defName": "IMAGE_24_HOUR_MODE",
         "file": "images/time_format_24H.png"
         },
@@ -32,48 +26,6 @@
         "file": "images/time_format_PM.png"
         },
 
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_SUN",
-        "file": "images/day_sun.png"
-        },
-
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_MON",
-        "file": "images/day_mon.png"
-        },
-
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_TUE",
-        "file": "images/day_tue.png"
-        },
-
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_WED",
-        "file": "images/day_wed.png"
-        },
-
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_THU",
-        "file": "images/day_thu.png"
-        },
-
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_FRI",
-        "file": "images/day_fri.png"
-        },
-
-	{
-        "type": "png",
-        "defName": "IMAGE_DAY_NAME_SAT",
-        "file": "images/day_sat.png"
-	},
-	
       {
         "type": "png",
         "defName": "IMAGE_MOON_0",
@@ -129,7 +81,7 @@
         "file": "images/datenum_1.png"
         },
 
-
+		
        {
         "type": "png",
         "defName": "IMAGE_DATENUM_2",

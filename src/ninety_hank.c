@@ -26,21 +26,11 @@ TextLayer text_sunset_layer;
 
 TextLayer text_addTimeZone1_layer;
 
+TextLayer DayOfWeekLayer;
+
 BmpContainer background_image;
 
 BmpContainer time_format_image;
-
-const int DAY_NAME_IMAGE_RESOURCE_IDS[] = {
-  RESOURCE_ID_IMAGE_DAY_NAME_SUN,
-  RESOURCE_ID_IMAGE_DAY_NAME_MON,
-  RESOURCE_ID_IMAGE_DAY_NAME_TUE,
-  RESOURCE_ID_IMAGE_DAY_NAME_WED,
-  RESOURCE_ID_IMAGE_DAY_NAME_THU,
-  RESOURCE_ID_IMAGE_DAY_NAME_FRI,
-  RESOURCE_ID_IMAGE_DAY_NAME_SAT
-};
-
-BmpContainer day_name_image;
 
 const int DATENUM_IMAGE_RESOURCE_IDS[] = {
   RESOURCE_ID_IMAGE_DATENUM_0,
@@ -218,15 +208,17 @@ void update_display(PblTm *current_time) {
   
   if (the_last_hour != display_hour){
 	  // Day of week
-	  set_container_image(&day_name_image, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(30, 71));
-
+	 // set_container_image(&day_name_image, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(30, 71));
+	 
+	  text_layer_set_text(&DayOfWeekLayer, DAY_NAME_LANGUAGE[current_time->tm_wday]); 
+	
 	  // Day
-	  set_container_image(&date_digits_images[0], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday/10], GPoint(75, 71));
-	  set_container_image(&date_digits_images[1], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday%10], GPoint(88, 71));
+	  set_container_image(&date_digits_images[0], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday/10], GPoint(day_month_x[0], 71));
+	  set_container_image(&date_digits_images[1], DATENUM_IMAGE_RESOURCE_IDS[current_time->tm_mday%10], GPoint(day_month_x[0] + 13, 71));
 	 
 	  // Month
-	  set_container_image(&date_digits_images[2], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)/10], GPoint(108, 71));
-	  set_container_image(&date_digits_images[3], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)%10], GPoint(121, 71));
+	  set_container_image(&date_digits_images[2], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)/10], GPoint(day_month_x[1], 71));
+	  set_container_image(&date_digits_images[3], DATENUM_IMAGE_RESOURCE_IDS[(current_time->tm_mon+1)%10], GPoint(day_month_x[1] + 13, 71));
 
 	  if (!clock_is_24h_style()) {
 		if (current_time->tm_hour >= 12) {
@@ -248,22 +240,14 @@ void update_display(PblTm *current_time) {
 
 	  set_container_image(&moon_digits_images[0], MOON_IMAGE_RESOURCE_IDS[moonphase_number], GPoint(1, 1));  // ---------- Moon phase Image
 
-	  char * moonphase_text = "--";
-	  if (moonphase_number == 0) moonphase_text = "NM"; 
-	  if (moonphase_number == 1) moonphase_text = "NM+"; 
-	  if (moonphase_number == 2) moonphase_text = "NM++"; 
-	  if (moonphase_number == 3) moonphase_text = "VM-"; 
-	  if (moonphase_number == 4) moonphase_text = "VM"; 
-	  if (moonphase_number == 5) moonphase_text = "VM+"; 
-	  if (moonphase_number == 6) moonphase_text = "VM++"; 
-	  if (moonphase_number == 7) moonphase_text = "NM-"; 
 
-	  text_layer_set_text(&moonLayer, moonphase_text);
+
+	  text_layer_set_text(&moonLayer, MOONPHASE_NAME_LANGUAGE[moonphase_number]);
 	// -------------------- Moon_phase
 	  
 	// -------------------- Calendar week  
 	  static char cw_text[] = "XX00";
-	  string_format_time(cw_text, sizeof(cw_text), "KW%V", current_time);
+	  string_format_time(cw_text, sizeof(cw_text), TRANSLATION_CW , current_time);
 	  text_layer_set_text(&cwLayer, cw_text); 
 	// ------------------- Calendar week  
 	the_last_hour = display_hour;
@@ -335,9 +319,19 @@ void handle_init(AppContextRef ctx) {
   text_layer_init(&text_addTimeZone1_layer, window.layer.frame);
   text_layer_set_text_color(&text_addTimeZone1_layer, GColorWhite);
   text_layer_set_background_color(&text_addTimeZone1_layer, GColorClear);
-  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(53, 5, 100, 30));
+  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(53, 6, 100, 30));
   text_layer_set_font(&text_addTimeZone1_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   layer_add_child(&window.layer, &text_addTimeZone1_layer.layer);  
+  
+  
+  // Day of week text
+  text_layer_init(&DayOfWeekLayer, GRect(35, 62, 130 /* width */, 30 /* height */));
+  layer_add_child(&background_image.layer.layer, &DayOfWeekLayer.layer);
+  text_layer_set_text_color(&DayOfWeekLayer, GColorWhite);
+  text_layer_set_background_color(&DayOfWeekLayer, GColorClear);
+  text_layer_set_font(&DayOfWeekLayer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+
+  
    
   // Avoids a blank screen on watch start.
   PblTm tick_time;
@@ -353,7 +347,6 @@ void handle_deinit(AppContextRef ctx) {
 
   bmp_deinit_container(&background_image);
   bmp_deinit_container(&time_format_image);
-  bmp_deinit_container(&day_name_image);
 
   for (int i = 0; i < TOTAL_DATE_DIGITS; i++) {
     bmp_deinit_container(&date_digits_images[i]);
