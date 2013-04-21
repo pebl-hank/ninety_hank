@@ -11,7 +11,7 @@
 #define MY_UUID {0xE5, 0x2B, 0xC3, 0x7B, 0x66, 0x13, 0x49, 0x70, 0x80, 0x11, 0xD6, 0xBC, 0x51, 0x97, 0xC5, 0x11}
 PBL_APP_INFO(MY_UUID,
 	     "90 Hank", "Hank",
-	     0, 4, /* App major/minor version */
+	     0, 5, /* App major/minor version */
 	     RESOURCE_ID_IMAGE_MENU_ICON,
 	     APP_INFO_WATCH_FACE);
 
@@ -335,7 +335,7 @@ void handle_init(AppContextRef ctx) {
   text_layer_init(&text_addTimeZone1_layer, window.layer.frame);
   text_layer_set_text_color(&text_addTimeZone1_layer, GColorWhite);
   text_layer_set_background_color(&text_addTimeZone1_layer, GColorClear);
-  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(55, 5, 100, 30));
+  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(53, 5, 100, 30));
   text_layer_set_font(&text_addTimeZone1_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   layer_add_child(&window.layer, &text_addTimeZone1_layer.layer);  
    
