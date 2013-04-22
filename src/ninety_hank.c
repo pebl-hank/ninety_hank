@@ -319,7 +319,7 @@ void handle_init(AppContextRef ctx) {
   text_layer_init(&text_addTimeZone1_layer, window.layer.frame);
   text_layer_set_text_color(&text_addTimeZone1_layer, GColorWhite);
   text_layer_set_background_color(&text_addTimeZone1_layer, GColorClear);
-  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(53, 6, 100, 30));
+  layer_set_frame(&text_addTimeZone1_layer.layer, GRect(51, 6, 100, 30));
   text_layer_set_font(&text_addTimeZone1_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   layer_add_child(&window.layer, &text_addTimeZone1_layer.layer);  
   
