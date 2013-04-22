@@ -2,8 +2,8 @@
 #define LATITUDE    51.0
 #define LONGITUDE 8.0
 #define TIMEZONE +1
-#define DAY_NAME_LANGUAGE DAY_NAME_GERMAN 				// Valid values: DAY_NAME_ENGLISH, DAY_NAME_GERMAN
-#define MOONPHASE_NAME_LANGUAGE MOONPHASE_TEXT_GERMAN 	// Valid values: MOONPHASE_TEXT_ENGLISH, MOONPHASE_TEXT_GERMAN
+#define DAY_NAME_LANGUAGE DAY_NAME_GERMAN 				// Valid values: DAY_NAME_ENGLISH, DAY_NAME_GERMAN, DAY_NAME_FRENCH
+#define MOONPHASE_NAME_LANGUAGE MOONPHASE_TEXT_GERMAN 	// Valid values: MOONPHASE_TEXT_ENGLISH, MOONPHASE_TEXT_GERMAN, MOONPHASE_TEXT_FRENCH
 #define day_month_x day_month_day_first 				// Valid values: day_month_month_first, day_month_day_first
 #define TRANSLATION_CW "KW%V" 							// Translation for the calendar week (e.g. "CW%V")
 
@@ -65,4 +65,24 @@ const char *MOONPHASE_TEXT_ENGLISH[] = {
 	"FM+",
 	"FM++",
 	"NM-"
+};
+
+const char *DAY_NAME_FRENCH[] = {
+    "DIM",
+    "LUN",
+    "MAR",
+    "MER",
+    "JEU",
+    "VEN",
+    "SAM"
+};
+const char *MOONPHASE_TEXT_FRENCH[] = {
+    "NL",
+    "NL+",
+    "NL++",
+    "PL-",
+    "PL",
+    "PL+",
+    "PL++",
+    "NL-"
 };
